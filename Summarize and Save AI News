@@ -1,0 +1,185 @@
+{
+  "name": "Summarize and Save AI News",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "http://rss.cnn.com/rss/edition_technology.rss",
+        "options": {
+          "limit": 20
+        }
+      },
+      "id": "rssFeedRead1",
+      "name": "RSS Feed Read",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json[\"title\"] }}",
+              "operation": "contains",
+              "value2": "AI"
+            }
+          ]
+        }
+      },
+      "id": "filterAI",
+      "name": "Filter AI News",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "options": {
+          "limit": 3
+        }
+      },
+      "id": "limitItems",
+      "name": "Limit to 3 Items",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 1,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "chatModel": "gpt-4.1",
+        "prompt": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "Your task is to summarize news articles. You will receive article links. For each link: 1. Read carefully. 2. Summarize (3-5 sentences) focusing only on facts. 3. Create a factual headline. 4. End with 'Original Source: [link]'. Reply in Markdown."
+            },
+            {
+              "content": "={{\n  $json.reduce((acc, item, index) => acc + (index + 1) + '. ' + item.link + '\\n', '')\n}}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "id": "openAiSummarize",
+      "name": "Summarize via OpenAI",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.1,
+      "position": [900, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "your-openai-credential-id",
+          "name": "Your OpenAI Credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sheetId": {
+          "__rl": true,
+          "value": "1a-xEj0MHtcV04sfrFZmQngJWbodEljcI2Komc4UfQVc",
+          "mode": "list",
+          "cachedResultName": "Eggrigator",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1a-xEj0MHtcV04sfrFZmQngJWbodEljcI2Komc4UfQVc/edit?usp=drivesdk"
+        },
+        "range": "Trigger",
+        "operation": "append",
+        "data": [
+          {
+            "field": "Title",
+            "value": "={{ $json.title }}"
+          },
+          {
+            "field": "Link",
+            "value": "={{ $json.link }}"
+          }
+        ]
+      },
+      "id": "addToGoogleSheets",
+      "name": "Add News to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1100, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "your-google-credential-id",
+          "name": "Your Google Sheets Credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "iliaandkatja@gmail.com",
+        "subject": "Today's Top 3 AI News Summaries",
+        "message": "={{ $json.message.content }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "sendGmail",
+      "name": "Send News via Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1300, 300],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "your-gmail-credential-id",
+          "name": "Your Gmail Credential"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "RSS Feed Read": {
+      "main": [
+        [
+          {
+            "node": "Filter AI News",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter AI News": {
+      "main": [
+        [
+          {
+            "node": "Limit to 3 Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit to 3 Items": {
+      "main": [
+        [
+          {
+            "node": "Summarize via OpenAI",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Add News to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize via OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Send News via Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
