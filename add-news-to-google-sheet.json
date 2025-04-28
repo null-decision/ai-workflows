@@ -1,0 +1,44 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "append",
+        "sheetId": {
+          "__rl": true,
+          "value": "1a-xEj0MHtcV04sfrFZmQngJWbodEljcI2Komc4UfQVc",
+          "mode": "list",
+          "cachedResultName": "Eggrigator",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1a-xEj0MHtcV04sfrFZmQngJWbodEljcI2Komc4UfQVc/edit?usp=drivesdk"
+        },
+        "range": "Trigger",
+        "options": {},
+        "additionalFields": {},
+        "data": [
+          {
+            "field": "Title",
+            "value": "={{$json.title}}"
+          },
+          {
+            "field": "Link",
+            "value": "={{$json.link}}"
+          }
+        ]
+      },
+      "id": "googleSheetsAppend1",
+      "name": "Add News to Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        1000,
+        600
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tylSIdRKZHla6Q1e",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {}
+}
